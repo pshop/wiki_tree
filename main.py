@@ -9,8 +9,9 @@ from bs4 import BeautifulSoup
 
 import requests
 
-EN_WIKI_BASE = 'https://en.wikipedia.org'
+EN_WIKI_BASE = 'https://en.wikipedia.org/wiki/'
 EN_WIKI_MAIN = '/wiki/Main_Page'
+
 
 class WikiLinksGetter:
 
@@ -40,10 +41,29 @@ class WikiLinksGetter:
         soup = BeautifulSoup(self.get_article_content(), 'html.parser')
         for link in soup.find_all('a'):
             link = link.get('href').__str__()
-            if ':' not in link and '#' not in link:
-                self.set_of_links.add(link)
+            if ':' not in link and '#' not in link and '//' not in link and '/w/' not in link:
+                self.set_of_links.add(link.replace('/wiki/',''))
 
 
+class TreeFiller:
+    
+    def __init__(self, begin_link, last_link):
+        self.begin_link = begin_link
+        self.last_link = last_link
+        self.all_links = [self.begin_link]
+        self.paths = {
+                    '_from': '',
+                    self.begin_link: {}}
+
+    def fill_tree(self, link_to_parse=self.begin_link, _from=''):
+        wiki_links = WikiLinksGetter(wiki_page_path=link_to_parse)
+        wiki_links.set_set_of_links()
+        self.paths[link_to_parse]['_from'] = _from
+
+        for link in wiki_links.set_of_links:
+            if link not in self.all_links:
+                self.all_links.append(link)
+                self.paths[link_to_parse][link] = dict()
     
 
 
@@ -70,7 +90,6 @@ def save_article(article_content, erase=False):
     with open(html_file) as f:
         return f.read()
 
-# TEST_ARTICLE = save_article(get_article_content())
 
 # TODO Extract the text content of an article
 # No images, no refs, no menus...
@@ -89,17 +108,6 @@ def parse_article(article_content):
         f.write(article_soup.__str__())
 
 
-if __name__ == '__main__':
-    link1 = '/wiki/Donald_Trump'
-    #/wiki/Resorts_International
-    #/wiki/WMS_Industries
-    link2 = '/wiki/World_War_II'
-    paths = {link1:[]}
-    all_links = set()
 
-    trump = WikiLinksGetter(wiki_page_path=link1)
-    trump.set_set_of_links()
-    for link in trump.set_of_links:
-        if link is not 'None':
-            all_links.add(link)
+    
     
