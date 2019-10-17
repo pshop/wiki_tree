@@ -106,8 +106,3 @@ def parse_article(article_content):
     html_test =os.path.join('/tmp', 'test.html')
     with open(html_test, 'w') as f:
         f.write(article_soup.__str__())
-
-
-
-    
-    
